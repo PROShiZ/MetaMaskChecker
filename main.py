@@ -36,9 +36,11 @@ def check_password(info, passwd):
     from Crypto.Cipher import AES
     decrypted_block = AES.new(key, AES.MODE_GCM, nonce=iv).decrypt(vault)
     try:
-        json_res = json.loads(decrypted_block.decode('utf-8', 'ignore')[:-11])
-        print(json_res[0]['data']['mnemonic'])
-        return f"Mnemonic: {json_res[0]['data']['mnemonic']}\nPassword: {passwd}"
+        if decrypted_block.decode('utf-8', 'ignore').__contains__('"mnemonic":"'):
+            mnemonic = decrypted_block.decode('utf-8', 'ignore')[43:][:77]
+            return f"Mnemonic: {mnemonic}\nPassword: {passwd}"
+        else:
+            return None
     except:
         return None
 
