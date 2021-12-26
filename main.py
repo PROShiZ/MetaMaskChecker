@@ -103,7 +103,7 @@ def check_balance():
         for address in addresses1:
             if address in checked_addresses:
                 continue
-            msg = f"Address: {address}\nBalance: "
+            msg = f"Log: {log}\nAddress: {address}\nBalance: "
             for site, css in meta_sites.items():
                 req = requests.get(f'https://openapi.debank.com/v1/user/total_balance?id={address}').content
                 try:
