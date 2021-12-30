@@ -130,6 +130,7 @@ def check_balance():
             checked_addresses.append(address)
             AddNoteToLog("\n" + msg.replace('<b>', '').replace('</b>', '') + "\n")
             sendmsg(cfg[0]['telegram_id'], msg)
+        addresses1.clear()
 
 
 if __name__ == "__main__":
